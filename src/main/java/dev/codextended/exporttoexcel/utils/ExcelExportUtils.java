@@ -11,6 +11,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -72,8 +74,8 @@ public class ExcelExportUtils {
         createCell(row, 6, "Mois de Service", style);
         createCell(row, 7, "Pourcentage", style);
         createCell(row, 8, "Nouveau Salaire", style);
-        createCell(row, 9, "Ancienne Masse Salariale", style);
-        createCell(row, 10, "Nouvelle Masse Salariale", style);
+//        createCell(row, 9, "Ancienne Masse Salariale", style);
+//        createCell(row, 10, "Nouvelle Masse Salariale", style);
     }
 
     private void writeCustomerData() {
@@ -102,10 +104,20 @@ public class ExcelExportUtils {
             nouvelleMasseSalariale = nouvelleMasseSalariale.add(BigDecimal.valueOf(employeeExport.getNewSalary()));
         }
         Row row = sheet.createRow(rowCount);
-        createCell(row, 6, ancienneMasseSalariale.doubleValue(), style);
+        createCell(row, 5, ancienneMasseSalariale.doubleValue(), style);
+        createCell(row, 8, nouvelleMasseSalariale.doubleValue(), style);
+        createCell(row, 7, calculatePercentage(ancienneMasseSalariale, nouvelleMasseSalariale), style);
+    }
 
-        row = sheet.createRow(rowCount);
-        createCell(row, 9, nouvelleMasseSalariale.doubleValue(), style);
+    private double calculatePercentage(BigDecimal ancienneMasseSalariale, BigDecimal nouvelleMasseSalariale) {
+        BigDecimal percentage = nouvelleMasseSalariale
+                .subtract(ancienneMasseSalariale)
+                .multiply(BigDecimal.valueOf(100))
+                .divide(ancienneMasseSalariale, 2, RoundingMode.HALF_UP);
+
+        return percentage.doubleValue();
+
+
     }
 
     public void exportDataToExcel(HttpServletResponse response) throws IOException {
